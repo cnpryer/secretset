@@ -1,6 +1,9 @@
+[![ci](https://github.com/cnpryer/secretset/workflows/ci/badge.svg)](https://github.com/cnpryer/secretset/actions)
+[![PyPI Latest Release](https://img.shields.io/pypi/v/secretset.svg)](https://pypi.org/project/secretset/)
+
 # secretset
 
-Command line program to anonymize data.
+Command line interface to anonymize data.
 
 ## Installation
 
@@ -21,7 +24,7 @@ For information on commands available run `secretset --help`.
 
 You can anonymize files using:
 
-```console
+```
 $ secretset file.xlsx --target col1
 ```
 
@@ -29,8 +32,8 @@ $ secretset file.xlsx --target col1
 
 You can anonymize multiple related files using:
 
-```console
-$ secretset file1.xlsx file2.csv --related \
+```
+$ secretset file1.xlsx file2.csv \
     --align col1 \
     --target col2 \
     --target col3
