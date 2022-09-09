@@ -1,3 +1,7 @@
+*_anon.csv
+*_anon.xlsx
+*_anon_xls
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

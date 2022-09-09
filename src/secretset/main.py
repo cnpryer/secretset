@@ -96,19 +96,25 @@ def main(args: str, **kwargs) -> None:
     #       i'll simplify command arguments/flags later.
     cols = [col for col in kwargs["target"] + kwargs["align"]]
 
+    if not cols:
+        for df in dfs:
+            cols.extend(df.columns.tolist())
+
     # all unique data from the selected fields
     data = set()
 
     # collect unique data from a df into a set
     for df in dfs:
-        data.update(collect_df_data(df, data, cols))
+        _cols = [col for col in cols if col in df.columns]
+        data.update(collect_df_data(df, data, _cols))
 
     # create a dataframe mapping dictionary out of a set of uniques
     mapping = map_sequence(data)
 
     # update each field selected with anonymous data using the mapping
     for i in range(len(dfs)):
-        dfs[i] = anonymize_df(df, mapping, cols)
+        _cols = [col for col in cols if col in dfs[i].columns]
+        dfs[i] = anonymize_df(dfs[i], mapping, _cols)
 
     for filename, df in zip(args, dfs):
         df.to_excel(f"{Path(filename).stem}_anon.xlsx", index=False)
