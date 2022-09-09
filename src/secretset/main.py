@@ -82,7 +82,7 @@ def main(ctx) -> None:
 )
 @click.argument("args", nargs=-1)
 def main(args: str, **kwargs) -> None:
-    dfs = [read_file(filename=_) for _ in args]
+    dfs = [read_file(filepath=Path(_)) for _ in args]
 
     # read all of the data from the columns targeted or aligned
     # between each file.
