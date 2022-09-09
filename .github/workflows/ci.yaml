@@ -3,11 +3,18 @@ name: ci
 on:
   push:
     branches: [master]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - '.github/workflows/ci.yaml'
+      - 'pyproject.toml'
   pull_request:
     branches: [master]
     paths:
       - 'src/**'
       - 'tests/**'
+      - '.github/workflows/ci.yaml'
+      - 'pyproject.toml'
 
 jobs:
   tests:
