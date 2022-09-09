@@ -22,6 +22,8 @@ For information on commands available run `secretset --help`.
 
 ### Anonymize files
 
+**See [PyPI](https://pypi.org/project/secretset/) for the latest release. The following is based on the latest `master` branch.**
+
 You can anonymize files using:
 
 ```
