@@ -19,7 +19,7 @@ anonymous data as `df2`.`a`.
 To do this, run the script pointing at the two files and add a flag for each
 common field.
 ```
-secretset df1.xlsx df2.xlsx --align=a
+secretset df1.xlsx df2.xlsx --col a
 ```
 NOTE: Currently aligned fields must have the same field name.
 """
@@ -75,16 +75,10 @@ def main(ctx) -> None:
 
 @main.command(default_command=True)  # type: ignore
 @click.option(
-    "--target",
+    "--col",
     default=[],
     multiple=True,
-    help="Field to anonymize.",
-)
-@click.option(
-    "--align",
-    default=[],
-    multiple=True,
-    help="Common field to anonymize across files.",
+    help="Column to anonymize.",
 )
 @click.argument("args", nargs=-1)
 def main(args: str, **kwargs) -> None:
@@ -94,7 +88,7 @@ def main(args: str, **kwargs) -> None:
     # between each file.
     # TODO: this is an optimization of a bunch of older code.
     #       i'll simplify command arguments/flags later.
-    cols = [col for col in kwargs["target"] + kwargs["align"]]
+    cols = [col for col in kwargs["col"]]
 
     if not cols:
         for df in dfs:
