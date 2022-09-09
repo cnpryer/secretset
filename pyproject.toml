@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "secretset"
-version = "0.1.1"
+version = "0.2.0a0"
 description = "Command line interface to anonymize data."
 authors = ["Chris Pryer <cnpryer@gmail.com>"]
 license = "MIT"
