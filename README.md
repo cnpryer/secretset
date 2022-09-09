@@ -25,16 +25,16 @@ For information on commands available run `secretset --help`.
 You can anonymize files using:
 
 ```
-$ secretset file.xlsx --target col1
+$ secretset file.xlsx --col a
 ```
 
 ### Anonymize multiple files
 
-You can anonymize multiple related files using:
+You can anonymize multiple related files:
 
 ```
 $ secretset file1.xlsx file2.csv \
-    --align col1 \
-    --target col2 \
-    --target col3
+    --col a \
+    --col b \
+    --col c 
 ```
