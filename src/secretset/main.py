@@ -90,7 +90,7 @@ def main(ctx) -> None:
 def main(args: str, **kwargs) -> None:
     dfs = [read_file(filename=_) for _ in args]
 
-    # read all of the data from the collumns targeted or aligned
+    # read all of the data from the columns targeted or aligned
     # between each file.
     # TODO: this is an optimization of a bunch of older code.
     #       i'll simplify command arguments/flags later.
