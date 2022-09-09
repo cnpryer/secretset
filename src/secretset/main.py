@@ -23,12 +23,15 @@ secretset df1.xlsx df2.xlsx --align=a
 ```
 NOTE: Currently aligned fields must have the same field name.
 """
-from collections import defaultdict
+from __future__ import annotations
+
 from pathlib import Path
 
 import click
-import pandas as pd  # type: ignore
 
+from secretset.anon import anonymize_df
+from secretset.collect import collect_df_data
+from secretset.io import read_file
 from secretset.map import map_sequence
 
 
@@ -70,22 +73,6 @@ def main(ctx) -> None:
     """Invoked entrypoint to script."""
 
 
-def read_file(filename: str) -> pd.DataFrame:
-    """Read file from current directory using filename.
-    Args:
-        filename (str): Filename. Only reads xlsx, xls, and csv.
-    Returns:
-        pd.DataFrame: Pandas DataFrame
-    """
-    if filename.lower().endswith(".xls") or filename.lower().endswith(".xlsx"):
-        return pd.read_excel(filename)
-
-    if filename.lower().endswith(".csv"):
-        return pd.read_csv(filename)
-
-    raise Exception("File must be .xls, .xlsx, .csv.")
-
-
 @main.command(default_command=True)  # type: ignore
 @click.option(
     "--target",
@@ -103,25 +90,25 @@ def read_file(filename: str) -> pd.DataFrame:
 def main(args: str, **kwargs) -> None:
     dfs = [read_file(filename=_) for _ in args]
 
-    # initialize each field marked to align across files
-    aligned_data_inputs = defaultdict(set)
-    for field in kwargs["align"]:
-        for df in dfs:
-            aligned_data_inputs[field].update(df[field].unique().tolist())
+    # read all of the data from the collumns targeted or aligned
+    # between each file.
+    # TODO: this is an optimization of a bunch of older code.
+    #       i'll simplify command arguments/flags later.
+    cols = [col for col in kwargs["target"] + kwargs["align"]]
 
-    # anonymize regular targets for each dataframe
-    for field in [_ for _ in kwargs["target"] if _ not in kwargs["align"]]:
-        for df in dfs:
-            if field not in df.columns:
-                continue
-            inputs = df[field].unique().tolist()
-            df[field] = df[field].replace(map_sequence(inputs))
+    # all unique data from the selected fields
+    data = set()
 
-    # anonymize fields to align
-    for field in aligned_data_inputs:
-        for df in dfs:
-            inputs = aligned_data_inputs[field]
-            df[field] = df[field].replace(map_sequence(inputs))
+    # collect unique data from a df into a set
+    for df in dfs:
+        data.update(collect_df_data(df, data, cols))
+
+    # create a dataframe mapping dictionary out of a set of uniques
+    mapping = map_sequence(data)
+
+    # update each field selected with anonymous data using the mapping
+    for i in range(len(dfs)):
+        dfs[i] = anonymize_df(df, mapping, cols)
 
     for filename, df in zip(args, dfs):
         df.to_excel(f"{Path(filename).stem}_anon.xlsx", index=False)

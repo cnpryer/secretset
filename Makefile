@@ -26,7 +26,12 @@ clean:
 	-@rm -rf .pytest_cache
 	-@rm -rf .mypy_cache
 
-lint: .venv
+lint-types:
+	@poetry run mypy \
+		src \
+		tests
+
+lint: .venv lint-types
 	@poetry run flake8 \
 		src \
 		tests
@@ -43,6 +48,3 @@ test: .venv
 	@poetry run pytest
 
 pre-commit: test fmt-check lint
-	@poetry run mypy \
-		src \
-		tests
