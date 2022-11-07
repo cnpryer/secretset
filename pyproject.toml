@@ -19,7 +19,7 @@ openpyxl = "^3.0.10"
 flake8 = "^5.0.4"
 black = "^22.6.0"
 isort = "^5.10.1"
-mypy = "^0.971"
+mypy = "^0.990"
 pytest = "^7.1.2"
 
 [build-system]
