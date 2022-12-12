@@ -26,9 +26,10 @@ NOTE: Currently aligned fields must have the same field name.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any  # type: ignore
 
 import click
-import pandas as pd
+import pandas as pd  # type: ignore
 
 from secretset.anon import anonymize_df
 from secretset.collect import collect_df_data
@@ -108,7 +109,7 @@ def anonymize_dataframes(
         dataframes = [dataframes]
 
     # all unique data from the selected fields
-    data = set()
+    data: set[Any] = set()
 
     # collect unique data from a df into a set
     for df in dataframes:
