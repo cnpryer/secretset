@@ -5,7 +5,8 @@ from typing import Sequence
 
 
 def map_sequence(
-    sequence: Sequence[str | int | float | datetime],
+    sequence: Sequence[str | int | float | datetime]
+    | set[str | int | float | datetime],
 ) -> dict[str | int | float | datetime, int]:
     """Anonymize input data using integer ranges for unique data.
 

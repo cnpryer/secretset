@@ -26,8 +26,10 @@ NOTE: Currently aligned fields must have the same field name.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any  # type: ignore
 
 import click
+import pandas as pd  # type: ignore
 
 from secretset.anon import anonymize_df
 from secretset.collect import collect_df_data
@@ -94,25 +96,32 @@ def main(args: str, **kwargs) -> None:
         for df in dfs:
             cols.extend(df.columns.tolist())
 
+    dfs = anonymize_dataframes(dfs, cols)
+
+    for filename, df in zip(args, dfs):
+        df.to_excel(f"{Path(filename).stem}_anon.xlsx", index=False)
+
+
+def anonymize_dataframes(
+    dataframes: list[pd.DataFrame], columns: list[str]
+) -> list[pd.DataFrame]:
+    if isinstance(dataframes, pd.DataFrame):
+        dataframes = [dataframes]
+
     # all unique data from the selected fields
-    data = set()
+    data: set[Any] = set()
 
     # collect unique data from a df into a set
-    for df in dfs:
-        _cols = [col for col in cols if col in df.columns]
+    for df in dataframes:
+        _cols = [col for col in columns if col in df.columns]
         data.update(collect_df_data(df, data, _cols))
 
     # create a dataframe mapping dictionary out of a set of uniques
     mapping = map_sequence(data)
 
     # update each field selected with anonymous data using the mapping
-    for i in range(len(dfs)):
-        _cols = [col for col in cols if col in dfs[i].columns]
-        dfs[i] = anonymize_df(dfs[i], mapping, _cols)
+    for i in range(len(dataframes)):
+        _cols = [col for col in columns if col in dataframes[i].columns]
+        dataframes[i] = anonymize_df(dataframes[i], mapping, _cols)
 
-    for filename, df in zip(args, dfs):
-        df.to_excel(f"{Path(filename).stem}_anon.xlsx", index=False)
-
-
-if __name__ == "__main__":
-    main()
+    return dataframes
