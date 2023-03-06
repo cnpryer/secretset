@@ -20,7 +20,7 @@ flake8 = "^5.0.4"
 black = "^22.6.0"
 isort = "^5.10.1"
 pytest = "^7.1.2"
-mypy = "^0.991"
+mypy = ">=0.991,<1.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
