@@ -46,7 +46,7 @@ def _anonymize_df(
     _map = {str(k): str(mapping[k]) for k in mapping}
     _df = (
         df.lazy()
-    .with_columns([pl.col(col).cast(pl.Utf8).map_dict(_map).cast(pl.Int32) for col in cols])
+        .with_columns([pl.col(col).cast(pl.Utf8).map_dict(_map).cast(pl.Int32) for col in cols])
         .collect()
     )
 
