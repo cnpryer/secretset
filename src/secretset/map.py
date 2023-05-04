@@ -30,19 +30,9 @@ def map_sequence(
     """
     series = pl.Series("source", sequence)
 
-    df = (
-        pl.DataFrame(series)
-        .lazy()
-        .with_columns(
-            [
-                pl.col("source"),
-                pl.arange(0, pl.count()).alias("anon"),
-            ]
-        )
-        .collect()
-    )
+    df = pl.DataFrame(series).lazy().with_row_count().collect()
     res = {}
     for pair in df.to_dicts():
-        res[pair["source"][0]] = pair["anon"]
+        res[pair["source"][0]] = pair["row_nr"]
 
     return res
