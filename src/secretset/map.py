@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Sequence
 
+import polars as pl
+
 
 def map_sequence(
     sequence: Sequence[str | int | float | datetime]
@@ -26,7 +28,16 @@ def map_sequence(
         dict[int, str | int | float | datetime]: Mapping of input to anonymous
             output data.
     """
-    unique_data = set(sequence)
-    res = {_: i for i, _ in enumerate(unique_data)}
+    series = pl.Series("source", sequence)
+
+    df = (
+        pl.DataFrame(series)
+        .lazy()
+        .with_columns([pl.col("source"), pl.col("source")])
+        .collect()
+    )
+    res = {}
+    for pair in df.to_dicts():
+        res[pair["source"]] = pair["anon"]
 
     return res

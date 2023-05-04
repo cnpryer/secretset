@@ -29,10 +29,10 @@ from pathlib import Path
 from typing import Any  # type: ignore
 
 import click
-import pandas as pd  # type: ignore
+import polars as pl
 
 from secretset.anon import anonymize_df
-from secretset.collect import collect_df_data
+from secretset.collect import collect_unique_from_df
 from secretset.io import read_file
 from secretset.map import map_sequence
 
@@ -82,30 +82,33 @@ def main(ctx) -> None:
     multiple=True,
     help="Column to anonymize.",
 )
+@click.option("--output", default=".", help="output file path")
 @click.argument("args", nargs=-1)
 def main(args: str, **kwargs) -> None:
-    dfs = [read_file(filepath=Path(_)) for _ in args]
+    dfs = [read_file(filepath=Path(f)) for f in args]
 
     # read all of the data from the columns targeted or aligned
     # between each file.
     # TODO: this is an optimization of a bunch of older code.
     #       i'll simplify command arguments/flags later.
     cols = [col for col in kwargs["col"]]
+    out = Path(kwargs["output"])
 
     if not cols:
         for df in dfs:
-            cols.extend(df.columns.tolist())
+            cols.extend(df.columns)
 
     dfs = anonymize_dataframes(dfs, cols)
 
     for filename, df in zip(args, dfs):
-        df.to_excel(f"{Path(filename).stem}_anon.xlsx", index=False)
+        path = out / Path(filename).stem
+        df.to_excel(path, index=False)
 
 
 def anonymize_dataframes(
-    dataframes: list[pd.DataFrame], columns: list[str]
-) -> list[pd.DataFrame]:
-    if isinstance(dataframes, pd.DataFrame):
+    dataframes: list[pl.DataFrame], columns: list[str]
+) -> list[pl.DataFrame]:
+    if isinstance(dataframes, pl.DataFrame):
         dataframes = [dataframes]
 
     # all unique data from the selected fields
@@ -113,8 +116,8 @@ def anonymize_dataframes(
 
     # collect unique data from a df into a set
     for df in dataframes:
-        _cols = [col for col in columns if col in df.columns]
-        data.update(collect_df_data(df, data, _cols))
+        cols = [col for col in columns if col in df.columns]
+        data.update(collect_unique_from_df(df, cols))
 
     # create a dataframe mapping dictionary out of a set of uniques
     mapping = map_sequence(data)

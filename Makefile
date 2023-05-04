@@ -17,7 +17,7 @@ help:
 
 .venv:
 	@python -m venv .venv
-	@poetry install
+	@cargo install --git https://github.com/mitsuhiko/rye rye
 	@pre-commit install
 
 clean:
@@ -27,24 +27,22 @@ clean:
 	-@rm -rf .mypy_cache
 
 lint-types:
-	@poetry run mypy \
+	@rye run mypy \
 		src \
 		tests
 
 lint: .venv lint-types
-	@poetry run flake8 \
-		src \
-		tests
+	@rye run ruff check .
 
 fmt: .venv
-	@poetry run isort .
-	@poetry run black .
+	@rye run ruff check . --select "I" --fix
+	@rye run black .
 
 fmt-check: .venv
-	@poetry run isort . --check
-	@poetry run black . --check
+	@rye run ruff check . --select "I"
+	@rye run black . --check
 
 test: .venv
-	@poetry run pytest
+	@rye run pytest
 
 pre-commit: test fmt-check lint

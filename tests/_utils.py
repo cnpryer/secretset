@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import pandas as pd  # type: ignore
+import polars as pl
 
 
-def use_update(df: pd.DataFrame, _set: set) -> set:
+def use_update(df: pl.DataFrame, _set: set) -> set:
     """The result of collect_df_data should always be the same
     as the result of using set.update().
 
@@ -14,7 +14,8 @@ def use_update(df: pd.DataFrame, _set: set) -> set:
     Returns:
         set: Updated set.
     """
-    for values in df.values:
-        _set.update(list(values))
+    _df_data: set = set()
+    for col in df.columns:
+        _df_data.update(df.lazy().select(pl.col(col).unique()).collect())
 
     return _set
