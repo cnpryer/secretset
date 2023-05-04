@@ -107,7 +107,7 @@ def main(args: str, **kwargs) -> None:
     dfs = anonymize_dataframes(dfs, cols)
 
     for f, df, out in zip(files, dfs, outs):
-        df.to_excel(out / f.stem)
+        df.to_csv(out / f.stem)
 
 
 def anonymize_dataframes(
