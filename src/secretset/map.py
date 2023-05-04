@@ -33,7 +33,12 @@ def map_sequence(
     df = (
         pl.DataFrame(series)
         .lazy()
-        .with_columns([pl.col("source"), pl.col("source")])
+        .with_columns(
+            [
+                pl.col("source"),
+                pl.arange(0, pl.arange(0, pl.col("source").len())),
+            ]
+        )
         .collect()
     )
     res = {}
