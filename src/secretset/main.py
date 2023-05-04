@@ -82,27 +82,32 @@ def main(ctx) -> None:
     multiple=True,
     help="Column to anonymize.",
 )
-@click.option("--output", default=".", multiple=True, help="output file path")
+@click.option("--output", default=[], multiple=True, help="output file path")
 @click.argument("args", nargs=-1)
 def main(args: str, **kwargs) -> None:
-    dfs = [read_file(filepath=Path(f)) for f in args]
+    if not args:
+        return
 
-    # read all of the data from the columns targeted or aligned
-    # between each file.
-    # TODO: this is an optimization of a bunch of older code.
-    #       i'll simplify command arguments/flags later.
     cols = (col for col in kwargs["col"])
+    if not cols:
+        return
+
+    files = (Path(f) for f in args)
+    dfs = (read_file(filepath=f) for f in files)
+
     outs = (Path(f) for f in kwargs["output"])
+    if not outs:
+        outs = (Path(".") / f.stem for f in files)
 
     if not cols:
-        for df in dfs:
-            cols.extend(df.columns)
+        cols = (col for col in dfs[0].columns)
+        for df in dfs[1:]:
+            cols += (col for col in df.columns)
 
     dfs = anonymize_dataframes(dfs, cols)
 
-    for filename, df, out in zip(args, dfs, outs):
-        path = out / Path(filename).stem
-        df.to_excel(path, index=False)
+    for f, df, out in zip(files, dfs, outs):
+        df.to_excel(out / f.stem)
 
 
 def anonymize_dataframes(
