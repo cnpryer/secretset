@@ -38,6 +38,7 @@ You can anonymize multiple related files:
 $ secretset file1.xlsx file2.csv \
     --col a \
     --col b \
-    --col c 
-    --output output.xlsx
+    --col c \
+    --output output1.csv \
+    --output output2.csv
 ```

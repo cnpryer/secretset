@@ -82,7 +82,7 @@ def main(ctx) -> None:
     multiple=True,
     help="Column to anonymize.",
 )
-@click.option("--output", default=".", help="output file path")
+@click.option("--output", default=".", multiple=True, help="output file path")
 @click.argument("args", nargs=-1)
 def main(args: str, **kwargs) -> None:
     dfs = [read_file(filepath=Path(f)) for f in args]
@@ -91,8 +91,8 @@ def main(args: str, **kwargs) -> None:
     # between each file.
     # TODO: this is an optimization of a bunch of older code.
     #       i'll simplify command arguments/flags later.
-    cols = [col for col in kwargs["col"]]
-    out = Path(kwargs["output"])
+    cols = (col for col in kwargs["col"])
+    outs = (Path(f) for f in kwargs["output"])
 
     if not cols:
         for df in dfs:
@@ -100,7 +100,7 @@ def main(args: str, **kwargs) -> None:
 
     dfs = anonymize_dataframes(dfs, cols)
 
-    for filename, df in zip(args, dfs):
+    for filename, df, out in zip(args, dfs, outs):
         path = out / Path(filename).stem
         df.to_excel(path, index=False)
 
