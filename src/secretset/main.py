@@ -26,15 +26,11 @@ NOTE: Currently aligned fields must have the same field name.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any  # type: ignore
 
 import click
-import polars as pl
 
-from secretset.anon import anonymize_df
-from secretset.collect import collect_unique_from_df
-from secretset.io import read_file
-from secretset.map import map_sequence
+from secretset.anon import anonymize_dataframes
+from secretset.io import read_file, write_file
 
 
 class DefaultCommandGroup(click.Group):
@@ -83,53 +79,37 @@ def main(ctx) -> None:
     help="Column to anonymize.",
 )
 @click.option("--output", default=[], multiple=True, help="output file path")
+@click.option("--format", default=[], multiple=True, help="output format")
 @click.argument("args", nargs=-1)
 def main(args: str, **kwargs) -> None:
     if not args:
         return
 
-    cols = (col for col in kwargs["col"])
-    if not cols:
-        return
-
+    cols = tuple(col for col in kwargs["col"])
     files = tuple(Path(f) for f in args)
-    dfs = list(read_file(filepath=f) for f in files)
+    dfs = list(read_file(f) for f in files)
 
-    outs = (Path(f) for f in kwargs["output"])
+    fmts = tuple(f for f in kwargs["format"])
+    if not fmts:
+        fmts = tuple("csv" for _ in files)
+    elif len(fmts) == 1:
+        fmts = tuple(fmts[0].lstrip(".").lower() for _ in files)
+    else:
+        fmts = tuple(f.lstrip(".").lower() for f in fmts)
+
+    outs = tuple(Path(f) for f in kwargs["output"])
     if not outs:
-        outs = tuple(Path(".") / f.stem for f in files)
+        outs = tuple(
+            Path(".") / f"{f.stem}.{fmt.lstrip('.')}"
+            for (f, fmt) in zip(files, fmts)
+        )
 
     if not cols:
-        cols = (col for col in dfs[0].columns)
+        cols = tuple(col for col in dfs[0].columns)
         for df in dfs[1:]:
-            cols += (col for col in df.columns)
+            cols += tuple(col for col in df.columns)
 
     dfs = anonymize_dataframes(dfs, cols)
 
-    for f, df, out in zip(files, dfs, outs):
-        df.write_csv(out.parent / f"{out.stem}.csv")
-
-
-def anonymize_dataframes(
-    dataframes: list[pl.DataFrame], columns: list[str]
-) -> list[pl.DataFrame]:
-    if isinstance(dataframes, pl.DataFrame):
-        dataframes = [dataframes]
-
-    # all unique data from the selected fields
-    data: set[Any] = set()
-
-    # collect unique data from a df into a set
-    for df in dataframes:
-        cols = [col for col in columns if col in df.columns]
-        data.update(collect_unique_from_df(df, cols))
-
-    # create a dataframe mapping dictionary out of a set of uniques
-    mapping = map_sequence(list(data))
-
-    # update each field selected with anonymous data using the mapping
-    for i in range(len(dataframes)):
-        _cols = [col for col in columns if col in dataframes[i].columns]
-        dataframes[i] = anonymize_df(dataframes[i], mapping, _cols)
-
-    return dataframes
+    for df, p, f in zip(dfs, outs, fmts):
+        write_file(df, p, format=f)

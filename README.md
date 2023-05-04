@@ -19,6 +19,7 @@ For information on commands available run `secretset --help`.
 
 - Excel
 - CSV
+- Parquet
 
 ### Anonymize files
 
