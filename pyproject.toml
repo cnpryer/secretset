@@ -1,6 +1,6 @@
 [project]
 name = "secretset"
-version = "0.3.0a1"
+version = "0.2.0a4"
 description = "Anonymize excel and csv files"
 authors = [
     { name = "Chris Pryer", email = "cnpryer@gmail.com" }
