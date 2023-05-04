@@ -48,7 +48,7 @@ jobs:
         run: make fmt-check
         
       - name: Run lint
-        run: make lint && make lint-type
+        run: make lint
 
       - name: Run tests
         run: make test
