@@ -1,23 +1,21 @@
-name: ci
+name: ci (fmt, lint, test)
 
 on:
   push:
-    branches: [master]
+    branches:
+      - "master"
     paths:
       - 'src/**'
       - 'tests/**'
       - '.github/workflows/ci.yaml'
-      - 'pyproject.toml'
   pull_request:
-    branches: [master]
     paths:
       - 'src/**'
       - 'tests/**'
       - '.github/workflows/ci.yaml'
-      - 'pyproject.toml'
 
 jobs:
-  tests:
+  default:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -27,48 +25,30 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
 
+      # Use Cargo to install rye
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@v1
+
       - name: Setup python
         uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
 
-      - name: Install and configure Poetry
-        uses: snok/install-poetry@v1
-        with:
-          version: 1.2.2
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          installer-parallel: true
-
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v2
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
-
       - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
+        run: cargo install --git https://github.com/mitsuhiko/rye
 
-      - name: Install library
-        run: poetry install --no-interaction
-
-      - name: Run lint
-        run: |
-          poetry run flake8 \
-          src \
-          tests
-
-      - name: Run mypy
-        run: |
-          poetry run mypy \
-          src \
-          tests
+      - name: Sync Python environment
+        run: rye sync
 
       - name: Run fmt check
-        run: poetry run black . --check
+        run: make fmt-check
+        
+      - name: Run lint
+        run: make lint
 
       - name: Run tests
-        run: poetry run pytest
+        run: make test

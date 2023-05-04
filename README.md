@@ -27,7 +27,7 @@ For information on commands available run `secretset --help`.
 You can anonymize files using:
 
 ```
-$ secretset file.xlsx --col a
+$ sset file.xlsx --col a
 ```
 
 ### Anonymize multiple files
@@ -35,8 +35,10 @@ $ secretset file.xlsx --col a
 You can anonymize multiple related files:
 
 ```
-$ secretset file1.xlsx file2.csv \
+$ sset file1.xlsx file2.csv \
     --col a \
     --col b \
-    --col c 
+    --col c \
+    --output output1.csv \
+    --output output2.csv
 ```

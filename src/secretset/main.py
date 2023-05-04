@@ -29,10 +29,10 @@ from pathlib import Path
 from typing import Any  # type: ignore
 
 import click
-import pandas as pd  # type: ignore
+import polars as pl
 
 from secretset.anon import anonymize_df
-from secretset.collect import collect_df_data
+from secretset.collect import collect_unique_from_df
 from secretset.io import read_file
 from secretset.map import map_sequence
 
@@ -82,30 +82,38 @@ def main(ctx) -> None:
     multiple=True,
     help="Column to anonymize.",
 )
+@click.option("--output", default=[], multiple=True, help="output file path")
 @click.argument("args", nargs=-1)
 def main(args: str, **kwargs) -> None:
-    dfs = [read_file(filepath=Path(_)) for _ in args]
+    if not args:
+        return
 
-    # read all of the data from the columns targeted or aligned
-    # between each file.
-    # TODO: this is an optimization of a bunch of older code.
-    #       i'll simplify command arguments/flags later.
-    cols = [col for col in kwargs["col"]]
+    cols = (col for col in kwargs["col"])
+    if not cols:
+        return
+
+    files = tuple(Path(f) for f in args)
+    dfs = list(read_file(filepath=f) for f in files)
+
+    outs = (Path(f) for f in kwargs["output"])
+    if not outs:
+        outs = tuple(Path(".") / f.stem for f in files)
 
     if not cols:
-        for df in dfs:
-            cols.extend(df.columns.tolist())
+        cols = (col for col in dfs[0].columns)
+        for df in dfs[1:]:
+            cols += (col for col in df.columns)
 
     dfs = anonymize_dataframes(dfs, cols)
 
-    for filename, df in zip(args, dfs):
-        df.to_excel(f"{Path(filename).stem}_anon.xlsx", index=False)
+    for f, df, out in zip(files, dfs, outs):
+        df.write_csv(out.parent / f"{out.stem}.csv")
 
 
 def anonymize_dataframes(
-    dataframes: list[pd.DataFrame], columns: list[str]
-) -> list[pd.DataFrame]:
-    if isinstance(dataframes, pd.DataFrame):
+    dataframes: list[pl.DataFrame], columns: list[str]
+) -> list[pl.DataFrame]:
+    if isinstance(dataframes, pl.DataFrame):
         dataframes = [dataframes]
 
     # all unique data from the selected fields
@@ -113,11 +121,11 @@ def anonymize_dataframes(
 
     # collect unique data from a df into a set
     for df in dataframes:
-        _cols = [col for col in columns if col in df.columns]
-        data.update(collect_df_data(df, data, _cols))
+        cols = [col for col in columns if col in df.columns]
+        data.update(collect_unique_from_df(df, cols))
 
     # create a dataframe mapping dictionary out of a set of uniques
-    mapping = map_sequence(data)
+    mapping = map_sequence(list(data))
 
     # update each field selected with anonymous data using the mapping
     for i in range(len(dataframes)):
