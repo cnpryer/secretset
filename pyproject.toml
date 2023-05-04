@@ -10,6 +10,9 @@ readme = "README.md"
 requires-python = ">= 3.10"
 license = { text = "MIT" }
 
+[project.scripts]
+sset = "secretset.main:main"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

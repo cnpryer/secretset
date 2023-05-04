@@ -36,13 +36,13 @@ def map_sequence(
         .with_columns(
             [
                 pl.col("source"),
-                pl.arange(0, pl.arange(0, pl.col("source").len())),
+                pl.arange(0, pl.count()).alias("anon"),
             ]
         )
         .collect()
     )
     res = {}
     for pair in df.to_dicts():
-        res[pair["source"]] = pair["anon"]
+        res[pair["source"][0]] = pair["anon"]
 
     return res

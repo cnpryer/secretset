@@ -25,6 +25,14 @@ def collect_unique_from_df(
     _set: set[Any] = set()
 
     for col in cols:
-        _set.update(df.lazy().select(pl.col(col).unique()).collect())
+        _set.update(
+            (
+                v
+                for v in df.lazy()
+                .select(pl.col(col).unique())
+                .collect()
+                .iter_rows()
+            )
+        )
 
     return _set

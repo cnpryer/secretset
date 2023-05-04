@@ -92,12 +92,12 @@ def main(args: str, **kwargs) -> None:
     if not cols:
         return
 
-    files = (Path(f) for f in args)
-    dfs = (read_file(filepath=f) for f in files)
+    files = tuple(Path(f) for f in args)
+    dfs = list(read_file(filepath=f) for f in files)
 
     outs = (Path(f) for f in kwargs["output"])
     if not outs:
-        outs = (Path(".") / f.stem for f in files)
+        outs = tuple(Path(".") / f.stem for f in files)
 
     if not cols:
         cols = (col for col in dfs[0].columns)
@@ -107,7 +107,7 @@ def main(args: str, **kwargs) -> None:
     dfs = anonymize_dataframes(dfs, cols)
 
     for f, df, out in zip(files, dfs, outs):
-        df.to_csv(out / f.stem)
+        df.write_csv(out.parent / f"{out.stem}.csv")
 
 
 def anonymize_dataframes(
@@ -125,7 +125,7 @@ def anonymize_dataframes(
         data.update(collect_unique_from_df(df, cols))
 
     # create a dataframe mapping dictionary out of a set of uniques
-    mapping = map_sequence(data)
+    mapping = map_sequence(list(data))
 
     # update each field selected with anonymous data using the mapping
     for i in range(len(dataframes)):
